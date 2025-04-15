@@ -2,84 +2,7 @@
 // License: Apache-2.0
 import { LitElement, html, css } from "lit";
 
-// ddd-steps-list-item definition
-class DddStepsListItem extends LitElement {
-  static get properties() {
-    return {
-      step: { type: Number, reflect: true },
-      dddPrimary: { type: Boolean, reflect: true },
-    };
-  }
-
-  constructor() {
-    super();
-    this.step = 0;
-    this.dddPrimary = false;
-  }
-
-  static get styles() {
-    return css`
-      :host {
-        display: block;
-        margin-bottom: var(--ddd-spacing-6, 24px);
-      }
-
-      :host(:last-child) {
-        margin-bottom: 0;
-      }
-
-      .step-wrapper {
-        display: flex;
-        align-items: flex-start;
-      }
-
-      .step-circle {
-        width: var(--ddd-spacing-8, 32px);
-        height: var(--ddd-spacing-8, 32px);
-        border-radius: var(--ddd-radius-full, 9999px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: var(--ddd-font-weight-bold, bold);
-        font-size: var(--ddd-font-size-md, 1rem);
-        margin-right: var(--ddd-spacing-4, 16px);
-        background-color: var(--ddd-theme-default-beaverBlue, #1e407c);
-        color: var(--ddd-theme-default-white, #fff);
-      }
-
-      .step-content {
-        flex: 1;
-      }
-
-      @media (max-width: 768px) {
-        .step-wrapper {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .step-circle {
-          margin-bottom: var(--ddd-spacing-2, 8px);
-        }
-      }
-    `;
-  }
-
-  render() {
-    return html`
-      <div class="step-wrapper">
-        <div class="step-circle">${this.step}</div>
-        <div class="step-content">
-          <slot></slot>
-        </div>
-      </div>
-    `;
-  }
-}
-
-customElements.define("ddd-steps-list-item", DddStepsListItem);
-
-// ddd-steps-list definition
-class DddStepsList extends LitElement {
+class DddCardList extends LitElement {
   static get properties() {
     return {
       dddPrimary: { type: Boolean, attribute: "ddd-primary", reflect: true },
@@ -97,45 +20,51 @@ class DddStepsList extends LitElement {
         display: block;
         padding: var(--ddd-spacing-4, 16px);
         box-sizing: border-box;
-        color: var(--ddd-theme-default-beaverBlue, #1e407c);
+      }
+
+      .grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--ddd-spacing-4, 16px);
+        justify-content: center;
+      }
+
+      ::slotted(ddd-card) {
+        display: inline-block;
+        width: 310px;
+        max-width: 100%;
+        border-radius: var(--ddd-radius-lg, 12px);
+        box-shadow: var(--ddd-boxShadow-sm, 0 2px 6px rgba(0, 0, 0, 0.1));
+        transition: transform 0.2s ease;
+      }
+
+      ::slotted(ddd-card:hover) {
+        transform: translateY(-5px);
+        box-shadow: var(--ddd-boxShadow-md, 0 4px 12px rgba(0, 0, 0, 0.15));
       }
     `;
   }
 
   render() {
-    return html`<slot @slotchange="${this._onSlotChange}"></slot>`;
+    return html`<div class="grid"><slot></slot></div>`;
   }
 
   firstUpdated() {
-    this._validateChildren();
-  }
-
-  _onSlotChange() {
-    this._validateChildren();
-  }
-
-  _validateChildren() {
-    const children = Array.from(this.children);
-    let stepCount = 0;
-    children.forEach((child) => {
-      if (child.tagName.toLowerCase() === "ddd-steps-list-item") {
-        stepCount++;
-        child.step = stepCount;
-        child.dddPrimary = this.dddPrimary;
-      } else {
-        this.removeChild(child);
-      }
-    });
+    this._propagatePrimary();
   }
 
   updated(changedProps) {
     if (changedProps.has("dddPrimary")) {
-      const items = this.querySelectorAll("ddd-steps-list-item");
-      items.forEach((item) => {
-        item.dddPrimary = this.dddPrimary;
-      });
+      this._propagatePrimary();
     }
+  }
+
+  _propagatePrimary() {
+    const cards = this.querySelectorAll("ddd-card");
+    cards.forEach((card) => {
+      card.setAttribute("ddd-primary", this.dddPrimary);
+    });
   }
 }
 
-customElements.define("ddd-steps-list", DddStepsList);
+customElements.define("ddd-card-list", DddCardList);
