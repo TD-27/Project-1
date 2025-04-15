@@ -139,4 +139,3 @@ class DddStepsList extends LitElement {
 }
 
 customElements.define("ddd-steps-list", DddStepsList);
-
